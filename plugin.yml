@@ -1,0 +1,11 @@
+name: HungerGames
+author: LupCode.com
+version: 1.0
+api-version: 1.19
+main: com.lupcode.mc.hungergames.HungerGames
+
+commands:
+
+  start:
+    usage: /start
+    description: Starts the game
