@@ -3,16 +3,22 @@ package com.lupcode.mc.hungergames;
 import java.io.File;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import com.lupcode.mc.hungergames.commands.CommandStart;
-import com.lupcode.mc.hungergames.events.PlayerListeners;
+import com.lupcode.mc.hungergames.items.Turret;
+import com.lupcode.mc.hungergames.listeners.EntityListener;
+import com.lupcode.mc.hungergames.listeners.PlayerListeners;
+import com.lupcode.mc.hungergames.listeners.WorldListener;
 
 public class HungerGames extends JavaPlugin {
 	
@@ -49,7 +55,9 @@ public class HungerGames extends JavaPlugin {
 		
 		
 		// Register events
+		Bukkit.getPluginManager().registerEvents(new EntityListener(), this);
 		Bukkit.getPluginManager().registerEvents(new PlayerListeners(), this);
+		Bukkit.getPluginManager().registerEvents(new WorldListener(), this);
 		
 		
 		GAME.stop();
@@ -100,6 +108,27 @@ public class HungerGames extends JavaPlugin {
 			}
 			
 		} }, 20, 10); // every 0.5s
+		
+		
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() { public void run() {
+			
+			Turret.onUpdateFast();
+			
+			// TODO REMOVE
+			for(Player p : Bukkit.getOnlinePlayers())
+				if(p.isSneaking() && !p.getLocation().getBlock().getRelative(BlockFace.DOWN).isPassable())
+					p.getInventory().addItem(Turret.getItem());
+			
+		} }, 20, 2); // every 0.1s
+		
+		
+		
+		// Simulate chunk loading
+		for(World world : Bukkit.getWorlds()) {
+			for(Chunk chunk : world.getLoadedChunks()) {
+				Turret.onChunkLoad(chunk);
+			}
+		}
 	}
 	
 	
@@ -110,6 +139,10 @@ public class HungerGames extends JavaPlugin {
 		
 	}
 	
+	
+	public static boolean isInGame(Player p) {
+		return p!=null && GAME != null && GAME.isInGame(p);
+	}
 	
 	
 	public static void deleteFiles(File file) {

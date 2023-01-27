@@ -1,8 +1,9 @@
-package com.lupcode.mc.hungergames.events;
+package com.lupcode.mc.hungergames.listeners;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityExhaustionEvent;
@@ -16,6 +17,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import com.lupcode.mc.hungergames.HungerGames;
+import com.lupcode.mc.hungergames.items.Turret;
 
 public class PlayerListeners implements Listener {
 
@@ -43,7 +45,15 @@ public class PlayerListeners implements Listener {
 	public void onInteract(PlayerInteractEvent event) {
 		Player p = event.getPlayer();
 		if(!HungerGames.GAME.isInGame(p)) event.setCancelled(true);
+		
+		if(event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(Turret.onClick(p, event.getHand(), event.getClickedBlock(), event.getBlockFace())) {
+				event.setCancelled(true);
+				return;
+			}
+		}
 	}
+	
 	
 	@EventHandler
 	public void onDropItem(PlayerDropItemEvent event) {

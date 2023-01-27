@@ -1,6 +1,7 @@
 package com.lupcode.mc.hungergames;
 
 import java.util.HashMap;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
@@ -19,7 +20,8 @@ public class Game {
 	protected String worldFile = "games/tmp1";
 	protected World world; // reference to all players
 	protected HashMap<String, Player> ingamePlayers = new HashMap<>();
-	protected HungerGamesMapGenerator generator = new JungleClockGenerator(this);
+	
+	protected HungerGamesMapGenerator generator = null;
 	
 	public Game() {
 		
@@ -30,12 +32,21 @@ public class Game {
 	}
 	
 	public int getMapRadius() {
-		return generator.getMapRadius();
+		return generator != null ? generator.getMapRadius() : Integer.MAX_VALUE;
 	}
 	
 	public void start() {
+		start(0);
+	}
+	public void start(long seed) {
+		seed = seed != 0 ? seed : new Random().nextLong();
 		
-		world = WorldCreator.name(worldFile).generator(generator).createWorld();
+		
+		generator = new JungleClockGenerator(null, seed); // TODO voting
+		//generator = new VolcanoGenerator(this, seed); // TODO voting
+		
+		
+		world = WorldCreator.name(worldFile).generator(generator).seed(seed).createWorld();
 		world.setAutoSave(false);
 		world.setClearWeatherDuration(20 * 60 * 20 * 3);
 		world.setDifficulty(Difficulty.HARD);

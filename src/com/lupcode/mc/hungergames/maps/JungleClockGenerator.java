@@ -16,6 +16,7 @@ import org.bukkit.util.noise.SimplexNoiseGenerator;
 import com.lupcode.mc.hungergames.Game;
 import com.lupcode.mc.hungergames.maps.structures.ExplosivePressurePlatePopulator;
 import com.lupcode.mc.hungergames.maps.structures.SpawnerPopulator;
+import com.lupcode.mc.hungergames.maps.structures.TurretPopulator;
 
 public class JungleClockGenerator extends HungerGamesMapGenerator  {
 	
@@ -31,35 +32,35 @@ public class JungleClockGenerator extends HungerGamesMapGenerator  {
 	
 	
 	
-	private static int MAP_RADIUS = 400;
+	private final static int MAP_RADIUS = 400;
 	
-	private static int LAKE_DEPTH = 20;
-	private static int LAKE_RADIUS = 80;
-	private static int BEACH_WIDTH = 6;
-	private static int BEACH_JUNGLE_TRANSITION = 3;
+	private final static int LAKE_DEPTH = 20;
+	private final static int LAKE_RADIUS = 80;
+	private final static int BEACH_WIDTH = 6;
+	private final static int BEACH_JUNGLE_TRANSITION = 3;
 	
-	private static double TERRAIN_ROUGHNESS_1_WIDTH = 200; // blocks
-	private static double TERRAIN_ROUGHNESS_1_HEIGHT = 20; // blocks
-	private static double TERRAIN_ROUGHNESS_2_WIDTH = 40; // blocks
-	private static double TERRAIN_ROUGHNESS_2_HEIGHT = 20; // blocks
-	private static double TERRAIN_ROUGHNESS_3_WIDTH = 10; // blocks
-	private static double TERRAIN_ROUGHNESS_3_HEIGHT = 2; // blocks
-	private static int TERRAIN_ROUGHNESS_TRANSITION = (int) (MAP_RADIUS * 0.5); // blocks between flat to full roughness
+	private final static double TERRAIN_ROUGHNESS_1_WIDTH = 200; // blocks
+	private final static double TERRAIN_ROUGHNESS_1_HEIGHT = 20; // blocks
+	private final static double TERRAIN_ROUGHNESS_2_WIDTH = 40; // blocks
+	private final static double TERRAIN_ROUGHNESS_2_HEIGHT = 20; // blocks
+	private final static double TERRAIN_ROUGHNESS_3_WIDTH = 10; // blocks
+	private final static double TERRAIN_ROUGHNESS_3_HEIGHT = 2; // blocks
+	private final static int TERRAIN_ROUGHNESS_TRANSITION = (int) (MAP_RADIUS * 0.5); // blocks between flat to full roughness
 	
 	
-	private static int BASE_HEIGHT = 50;
-	private static int EDGE_HEIGHT = (int) (260 - TERRAIN_ROUGHNESS_1_HEIGHT - TERRAIN_ROUGHNESS_2_HEIGHT - TERRAIN_ROUGHNESS_3_HEIGHT);
+	private final static int BASE_HEIGHT = 50;
+	private final static int EDGE_HEIGHT = (int) (260 - TERRAIN_ROUGHNESS_1_HEIGHT - TERRAIN_ROUGHNESS_2_HEIGHT - TERRAIN_ROUGHNESS_3_HEIGHT);
 	
 	
 	// helpers
-	private static int MAP_RADIUS_2 = MAP_RADIUS*MAP_RADIUS;
-	private static int HEIGHT_DIFF = (int) (1.1 * (EDGE_HEIGHT - BASE_HEIGHT));
-	private static int LAKE_RADIUS_2 = LAKE_RADIUS*LAKE_RADIUS;
-	private static int VIEW_RADIUS_2 = (int) (1.1 * MAP_RADIUS_2) - LAKE_RADIUS_2;
-	private static int TRANSITION_MIN_RADIUS_2 = (LAKE_RADIUS+BEACH_WIDTH)*(LAKE_RADIUS+BEACH_WIDTH);
-	private static int JUNGLE_MIN_RADIUS = LAKE_RADIUS + BEACH_WIDTH + BEACH_JUNGLE_TRANSITION;
-	private static int JUNGLE_MIN_RADIUS_2 = JUNGLE_MIN_RADIUS * JUNGLE_MIN_RADIUS;
-	private int TERRAIN_ROUGHNESS_TRANSITION_2 = TERRAIN_ROUGHNESS_TRANSITION*TERRAIN_ROUGHNESS_TRANSITION;
+	private final static int MAP_RADIUS_2 = MAP_RADIUS*MAP_RADIUS;
+	private final static int HEIGHT_DIFF = (int) (1.1 * (EDGE_HEIGHT - BASE_HEIGHT));
+	private final static int LAKE_RADIUS_2 = LAKE_RADIUS*LAKE_RADIUS;
+	private final static int VIEW_RADIUS_2 = (int) (1.1 * MAP_RADIUS_2) - LAKE_RADIUS_2;
+	private final static int TRANSITION_MIN_RADIUS_2 = (LAKE_RADIUS+BEACH_WIDTH)*(LAKE_RADIUS+BEACH_WIDTH);
+	private final static int JUNGLE_MIN_RADIUS = LAKE_RADIUS + BEACH_WIDTH + BEACH_JUNGLE_TRANSITION;
+	private final static int JUNGLE_MIN_RADIUS_2 = JUNGLE_MIN_RADIUS * JUNGLE_MIN_RADIUS;
+	private final int TERRAIN_ROUGHNESS_TRANSITION_2 = TERRAIN_ROUGHNESS_TRANSITION*TERRAIN_ROUGHNESS_TRANSITION;
 	
 	
 	
@@ -86,13 +87,14 @@ public class JungleClockGenerator extends HungerGamesMapGenerator  {
 		
 	}
 	
-	
-	
-	protected final Game game;
+
 	protected final BiomeProvider biomeProvider;
+	protected SimplexNoiseGenerator noise1 = new SimplexNoiseGenerator(this.seed + 48927134);
+	protected SimplexNoiseGenerator noise2 = new SimplexNoiseGenerator(this.seed + 90560210);
+	protected SimplexNoiseGenerator noise3 = new SimplexNoiseGenerator(this.seed + 34178934);
 	
-	public JungleClockGenerator(Game game) {
-		this.game = game;
+	public JungleClockGenerator(Game game, long seed) {
+		super(game, seed);
 		biomeProvider = new JungleClockBiomeGenerator();
 	}
 	
@@ -106,7 +108,8 @@ public class JungleClockGenerator extends HungerGamesMapGenerator  {
 	public List<BlockPopulator> getDefaultPopulators(World world) {
 		return Arrays.asList(
 			new SpawnerPopulator(1.0/40.0, JUNGLE_MIN_RADIUS + 20),
-			new ExplosivePressurePlatePopulator(1.0 / 10.0, LAKE_RADIUS+2)
+			new ExplosivePressurePlatePopulator(1.0 / 10.0, LAKE_RADIUS+2),
+			new TurretPopulator(1.0 / 5.0, LAKE_RADIUS+2)
 		);
 	}
 	
@@ -119,10 +122,6 @@ public class JungleClockGenerator extends HungerGamesMapGenerator  {
 	
 	@Override
 	public void generateNoise(WorldInfo worldInfo, Random random, int chunkX, int chunkZ, ChunkData chunkData) {
-		SimplexNoiseGenerator noise1 = new SimplexNoiseGenerator(worldInfo.getSeed());
-		SimplexNoiseGenerator noise2 = new SimplexNoiseGenerator(worldInfo.getSeed() + 97531);
-		SimplexNoiseGenerator noise3 = new SimplexNoiseGenerator(worldInfo.getSeed() + 24680);
-		
 		for(int dx = 0; dx < 16; dx++) {
 			double x = chunkX*16 + dx;
 			for(int dz = 0; dz < 16; dz++) {

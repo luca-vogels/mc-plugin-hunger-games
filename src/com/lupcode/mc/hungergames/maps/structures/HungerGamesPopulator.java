@@ -45,10 +45,38 @@ public class HungerGamesPopulator extends BlockPopulator {
 		return !m.isAir() && !m.isBurnable() && m.isOccluding() && m.isSolid();
 	}
 	
+	protected boolean isWalkable(int x, int y, int z, LimitedRegion limitedRegion) {
+		Material m = limitedRegion.getBlockData(x, y, z).getMaterial();
+		return m.isAir() || !m.isSolid();
+	}
+	
+	protected boolean isLiquid(int x, int y, int z, LimitedRegion limitedRegion) {
+		Material m = limitedRegion.getBlockData(x, y, z).getMaterial();
+		return m == Material.WATER || m == Material.LAVA;
+	}
+	
 	protected int getHighestBlockY(WorldInfo worldInfo, int x, int z, LimitedRegion limitedRegion) {
 		for(int y = worldInfo.getMaxHeight()-1; y > worldInfo.getMinHeight(); y--)
 			if(isGroundBlock(x, y, z, limitedRegion)) return y;
 		return worldInfo.getMinHeight()+1;
+	}
+	
+	
+	protected int getNearestFloorBlockY(WorldInfo worldInfo, int x, int y, int z, LimitedRegion limitedRegion) {
+		int ty = 0;
+		if(limitedRegion.isInRegion(x, ty, z) && !isGroundBlock(x, y, z, limitedRegion))
+			for(int i=1; i < worldInfo.getMaxHeight(); i++) {
+				ty = y + i;
+				if(limitedRegion.isInRegion(x, ty, z) && !isGroundBlock(x, ty, z, limitedRegion)) return ty-1;
+				ty = y - i;
+				if(limitedRegion.isInRegion(x, ty, z) && ty > 0 && !isGroundBlock(x, ty, z, limitedRegion)) break;
+			}
+		// found ceiling, now search for floor
+		for(int i=1; i < worldInfo.getMaxHeight(); i++) {
+			ty--;
+			if(limitedRegion.isInRegion(x, ty, z) && isGroundBlock(x, ty, z, limitedRegion)) break;
+		}
+		return ty > worldInfo.getMinHeight() ? ty : y;
 	}
 	
 	
